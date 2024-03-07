@@ -69,12 +69,94 @@ class Player {
     }
 }
 
+// Platforms and their logic
+class Platform {
+    constructor(x, y) {
+        this.position = {
+            x, 
+            y,
+        };
+        this.width = 200;
+        this.height = proportionalSize(40);
+    }
+    draw() {
+        ctx.fillStyle = "#acd157";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
+
 const player = new Player();
+
+// list of positions for the platforms
+const platformPositions = [
+    {
+        x: 500,
+        y: proportionalSize(450),
+    },
+];
+
+// Functionality for moving the player across the screen
+const animate = () => {
+    requestAnimationFrame(animate);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    player.update();
+    if (keys.rightKey.pressed && player.position.x < proportionalSize(400)) {
+        player.velocity.x = 5;
+    } else if (keys.leftKey.pressed && player.position.x > proportionalSize(100)) {
+        player.velocity.x = -5;
+    } else {
+        player.velocity.x = 0;
+    }
+}
+
+const keys = {
+    rightKey: {pressed: false},
+    leftKey: {pressed: false},
+}
+
+// functionality responsible for moving the player across the screen
+const movePlayer = (key, xVelocity, isPressed) => {
+    if(!isCheckpointCollisionDetectionActive) {
+        player.velocity.x = 0;
+        player.velocity.y = 0;
+        return;
+    }
+    switch(key){
+        case "ArrowLeft":
+            keys.leftKey.pressed = isPressed;
+            if(xVelocity === 0) {
+                player.velocity.x = xVelocity;
+            }
+            player.velocity.x -= xVelocity;
+            break;
+        case "ArrowUp":
+        case " ":
+        case "Spacebar":
+            player.velocity.y -= 8;
+            break;
+        case "ArrowRight":
+            keys.rightKey.pressed = isPressed;
+            if (xVelocity === 0) {
+                player.velocity.x = xVelocity;
+            }
+            player.velocity.x += xVelocity;
+            break;
+    }
+}
 
 const startGame = () => {
     canvas.style.display = "block";
     startScreen.style.display = "none";
-    player.draw();
+    animate();
+
 };
 
 startBtn.addEventListener("click", startGame);
+
+window.addEventListener("keydown", ({key}) => {
+    movePlayer(key, 8, true);
+});
+
+window.addEventListener("keyup", ({key}) => {
+    movePlayer(key, 0, false);
+});
